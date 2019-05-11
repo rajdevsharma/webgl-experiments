@@ -65,21 +65,30 @@ function setRectangle(gl, x, y, width, height) {
 
 class RectangleDrawer {
     constructor() {
+        const gl = this.getContext();
+        this.program = webglUtils.createProgramFromSources(gl, [vertexShaderSource, fragmentShaderSource]);
+        this.rectangles = [];
+        for (let i = 0; i < 10000; ++i){
+            const x = randomInt(2000);
+            const y = randomInt(1000);
+            this.rectangles.push([x, y, 40, 30, Math.random(), Math.random(), Math.random()]);
+        }
+    }
 
+    getContext() {
+        var canvas = document.getElementById("c");
+        var gl = canvas.getContext("webgl2");
+        return gl;
     }
 
     draw() {
-
         // Get A WebGL context
-        var canvas = document.getElementById("c");
-        var gl = canvas.getContext("webgl2");
+        const gl = this.getContext();
         if (!gl) {
             return;
         }
 
-        // Use our boilerplate utils to compile the shaders and link into a program
-        var program = webglUtils.createProgramFromSources(gl,
-            [vertexShaderSource, fragmentShaderSource]);
+        const program = this.program;
 
         // look up where the vertex data needs to go.
         var positionAttributeLocation = gl.getAttribLocation(program, "a_position");
@@ -131,14 +140,18 @@ class RectangleDrawer {
         // pixels to clipspace in the shader
         gl.uniform2f(resolutionUniformLocation, gl.canvas.width, gl.canvas.height);
 
-        // draw 50 random rectangles in random colors
-        for (var ii = 0; ii < 50; ++ii) {
+        const offsetX = 100 * Math.cos(performance.now() / 1000.0);
+        const offsetY = 100 * Math.sin(performance.now() / 1000.0);
+
+        // draw random rectangles in random colors
+        for (const rect of this.rectangles) {
             // Put a rectangle in the position buffer
+            const [x, y, w, h, r, g, b] = rect;
             setRectangle(
-                gl, randomInt(300), randomInt(300), randomInt(300), randomInt(300));
+                gl, x + offsetX, y + offsetY, w, h);
 
             // Set a random color.
-            gl.uniform4f(colorLocation, Math.random(), Math.random(), Math.random(), 1);
+            gl.uniform4f(colorLocation, r, g, b, 1);
 
             // Draw the rectangle.
             var primitiveType = gl.TRIANGLES;
@@ -149,9 +162,14 @@ class RectangleDrawer {
     }
 }
 
+function step(rd) {
+    rd.draw();
+    requestAnimationFrame(() => step(rd));
+}
+
 function main() {
     const rd = new RectangleDrawer();
-    rd.draw();
+    step(rd);
 }
 
 main();
