@@ -61,7 +61,7 @@ class RectangleDrawer {
         for (let i = 0; i < 30000; ++i){
             const x = randomInt(1000);
             const y = randomInt(1000);
-            this.rectangles.push([x, y, 20, 20, Math.random(), Math.random(), Math.random()]);
+            this.rectangles.push([x, y, 5, 5, Math.random(), Math.random(), Math.random()]);
         }
         const numTrianglesPerRectangle = 2;
         const numVerticesPerTriangle = 3;
@@ -161,25 +161,24 @@ class RectangleDrawer {
         const arrayBuffer = this.arrayBuffer;
         let curIndex = 0;
 
-        const addVertex = (x, y, color) => {
+        const addVertex = (x, y, r, g, b) => {
             arrayBuffer[curIndex++] = x;
             arrayBuffer[curIndex++] = y;
-            arrayBuffer[curIndex++] = color[0];
-            arrayBuffer[curIndex++] = color[1];
-            arrayBuffer[curIndex++] = color[2];
-            arrayBuffer[curIndex++] = color[3];
+            arrayBuffer[curIndex++] = r;
+            arrayBuffer[curIndex++] = g;
+            arrayBuffer[curIndex++] = b;
+            arrayBuffer[curIndex++] = 1.0;
         };
 
         const addRectangle = (x, y, w, h, r, g, b) => {
             const x2 = x + w;
             const y2 = y + h;
-            const color = [r, g, b, 1.0];
-            addVertex(x, y, color);
-            addVertex(x2, y, color);
-            addVertex(x, y2, color);
-            addVertex(x, y2, color);
-            addVertex(x2, y, color);
-            addVertex(x2, y2, color);
+            addVertex(x, y, r, g, b);
+            addVertex(x2, y, r, g, b);
+            addVertex(x, y2, r, g, b);
+            addVertex(x, y2, r, g, b);
+            addVertex(x2, y, r, g, b);
+            addVertex(x2, y2, r, g, b);
         };
         // draw random rectangles in random colors
         for (const rect of this.rectangles) {
