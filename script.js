@@ -63,12 +63,23 @@ function setRectangle(gl, x, y, width, height) {
     ]), gl.STATIC_DRAW);
 }
 
+function appendRectangle(coordinates, x, y, width, height) {
+    var x1 = x;
+    var x2 = x + width;
+    var y1 = y;
+    var y2 = y + height;
+
+    for (let c of [x1, y1, x2, y1, x1, y2, x1, y2, x2, y1, x2, y2]) {
+        coordinates.push(c);
+    }
+}
+
 class RectangleDrawer {
     constructor() {
         const gl = this.getContext();
         this.program = webglUtils.createProgramFromSources(gl, [vertexShaderSource, fragmentShaderSource]);
         this.rectangles = [];
-        for (let i = 0; i < 5000; ++i){
+        for (let i = 0; i < 100000; ++i){
             const x = randomInt(1000);
             const y = randomInt(1000);
             this.rectangles.push([x, y, 20, 20, Math.random(), Math.random(), Math.random()]);
@@ -144,21 +155,27 @@ class RectangleDrawer {
         const offsetY = 30 * Math.sin(performance.now() / 1000.0);
 
         // draw random rectangles in random colors
+        const coordinates = [];
+        let first = true;
         for (const rect of this.rectangles) {
             // Put a rectangle in the position buffer
             const [x, y, w, h, r, g, b] = rect;
-            setRectangle(
-                gl, x + offsetX, y + offsetY, w, h);
+            appendRectangle(coordinates, x + offsetX, y + offsetY, w, h);
 
             // Set a random color.
-            gl.uniform4f(colorLocation, r, g, b, 1);
-
-            // Draw the rectangle.
-            var primitiveType = gl.TRIANGLES;
-            var offset = 0;
-            var count = 6;
-            gl.drawArrays(primitiveType, offset, count);
+            if (first) {
+                gl.uniform4f(colorLocation, r, g, b, 1);
+                first = false;
+            }
         }
+
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(coordinates), gl.STATIC_DRAW);
+
+        // Draw the rectangle.
+        var primitiveType = gl.TRIANGLES;
+        var offset = 0;
+        var count = 6 * this.rectangles.length;
+        gl.drawArrays(primitiveType, offset, count);
     }
 }
 
