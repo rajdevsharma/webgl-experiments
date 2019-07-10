@@ -63,6 +63,13 @@ class RectangleDrawer {
             const y = randomInt(1000);
             this.rectangles.push([x, y, 20, 20, Math.random(), Math.random(), Math.random()]);
         }
+        const numTrianglesPerRectangle = 2;
+        const numVerticesPerTriangle = 3;
+        const numFloatsPerVertex = 6; // 2 floats for position + 4 floats for color (R, G, B, A)
+        const numFloatsPerTriangle = numFloatsPerVertex * numVerticesPerTriangle;
+        const numFloatsPerRectangle = numFloatsPerTriangle * numTrianglesPerRectangle;
+        this.arrayBuffer = new Float32Array(numFloatsPerRectangle * this.rectangles.length);
+        this.setupBuffer();
     }
 
     getContext() {
@@ -86,25 +93,20 @@ class RectangleDrawer {
         return new Float32Array((new Uint8Array([r_8, g_8, b_8, a_8])).buffer)[0];
     }
 
-    draw() {
-        // Get A WebGL context
+    setupBuffer() {
         const gl = this.getContext();
         if (!gl) {
             return;
         }
-
         const program = this.program;
 
         // look up where the vertex data needs to go.
         var positionAttributeLocation = gl.getAttribLocation(program, "a_position");
         var colorAttributeLocation = gl.getAttribLocation(program, "a_color");
 
-        // look up uniform locations
-        var resolutionUniformLocation = gl.getUniformLocation(program, "u_resolution");
-        var colorLocation = gl.getUniformLocation(program, "u_color");
-
         // Create a buffer
-        var buffer = gl.createBuffer();
+        this.buffer = gl.createBuffer();
+        const buffer = this.buffer;
 
         // Turn on the attributes
         gl.enableVertexAttribArray(positionAttributeLocation);
@@ -123,7 +125,19 @@ class RectangleDrawer {
             positionAttributeLocation, numPositionFields, gl.FLOAT, false, stride, 0);
         gl.vertexAttribPointer(
             colorAttributeLocation, numColorFields, gl.FLOAT, true, stride, numPositionFields * fieldSize);
+    }
 
+    draw() {
+        // Get A WebGL context
+        const gl = this.getContext();
+        if (!gl) {
+            return;
+        }
+
+        const program = this.program;
+
+        // look up uniform locations
+        var resolutionUniformLocation = gl.getUniformLocation(program, "u_resolution");
         webglUtils.resizeCanvasToDisplaySize(gl.canvas);
 
         // Tell WebGL how to convert from clip space to pixels
@@ -136,19 +150,15 @@ class RectangleDrawer {
         // Tell it to use our program (pair of shaders)
         gl.useProgram(program);
 
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer);
         // Pass in the canvas resolution so we can convert from
         // pixels to clipspace in the shader
         gl.uniform2f(resolutionUniformLocation, gl.canvas.width, gl.canvas.height);
 
         const offsetX = 30 * Math.cos(performance.now() / 1000.0);
         const offsetY = 30 * Math.sin(performance.now() / 1000.0);
-
-        const numTrianglesPerRectangle = 2;
-        const numVerticesPerTriangle = 3;
-        const numFloatsPerVertex = 6; // 2 floats for position + 4 floats for color (R, G, B, A)
-        const numFloatsPerTriangle = numFloatsPerVertex * numVerticesPerTriangle;
-        const numFloatsPerRectangle = numFloatsPerTriangle * numTrianglesPerRectangle;
-        const arrayBuffer = new Float32Array(numFloatsPerRectangle * this.rectangles.length);
+        // Reuse the same array buffer each frame
+        const arrayBuffer = this.arrayBuffer;
         let curIndex = 0;
 
         const addVertex = (x, y, color) => {
@@ -184,6 +194,8 @@ class RectangleDrawer {
         // Draw the rectangle.
         var primitiveType = gl.TRIANGLES;
         var offset = 0;
+        const numTrianglesPerRectangle = 2;
+        const numVerticesPerTriangle = 3;
         const numVerticesPerRectangle = numVerticesPerTriangle * numTrianglesPerRectangle;
         var count = numVerticesPerRectangle * this.rectangles.length;
         gl.drawArrays(primitiveType, offset, count);
