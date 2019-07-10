@@ -145,29 +145,31 @@ class RectangleDrawer {
         const addRectangle = (x, y, w, h, color) => {
             const x2 = x + w;
             const y2 = y + h;
-            arrayBuffer[curIndex++] = x;
-            arrayBuffer[curIndex++] = y;
-            arrayBuffer[curIndex++] = color;
+            arrayBuffer[curIndex] = x;
+            arrayBuffer[curIndex+1] = y;
+            arrayBuffer[curIndex+2] = color;
 
-            arrayBuffer[curIndex++] = x2;
-            arrayBuffer[curIndex++] = y;
-            arrayBuffer[curIndex++] = color;
+            arrayBuffer[curIndex+3] = x2;
+            arrayBuffer[curIndex+4] = y;
+            arrayBuffer[curIndex+5] = color;
 
-            arrayBuffer[curIndex++] = x;
-            arrayBuffer[curIndex++] = y2;
-            arrayBuffer[curIndex++] = color;
+            arrayBuffer[curIndex+6] = x;
+            arrayBuffer[curIndex+7] = y2;
+            arrayBuffer[curIndex+8] = color;
 
-            arrayBuffer[curIndex++] = x;
-            arrayBuffer[curIndex++] = y2;
-            arrayBuffer[curIndex++] = color;
+            arrayBuffer[curIndex+9] = x;
+            arrayBuffer[curIndex+10] = y2;
+            arrayBuffer[curIndex+11] = color;
             
-            arrayBuffer[curIndex++] = x2;
-            arrayBuffer[curIndex++] = y;
-            arrayBuffer[curIndex++] = color;
+            arrayBuffer[curIndex+12] = x2;
+            arrayBuffer[curIndex+13] = y;
+            arrayBuffer[curIndex+14] = color;
 
-            arrayBuffer[curIndex++] = x2;
-            arrayBuffer[curIndex++] = y2;
-            arrayBuffer[curIndex++] = color;
+            arrayBuffer[curIndex+15] = x2;
+            arrayBuffer[curIndex+16] = y2;
+            arrayBuffer[curIndex+17] = color;
+
+            curIndex += 18;
         };
         // draw random rectangles in random colors
         for (const rect of this.rectangles) {
