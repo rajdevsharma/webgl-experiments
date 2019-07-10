@@ -167,21 +167,32 @@ class RectangleDrawer {
         const arrayBuffer = this.arrayBuffer;
         let curIndex = 0;
 
-        const addVertex = (x, y, color) => {
-            arrayBuffer[curIndex++] = x;
-            arrayBuffer[curIndex++] = y;
-            arrayBuffer[curIndex++] = color;
-        };
-
         const addRectangle = (x, y, w, h, color) => {
             const x2 = x + w;
             const y2 = y + h;
-            addVertex(x, y, color);
-            addVertex(x2, y, color);
-            addVertex(x, y2, color);
-            addVertex(x, y2, color);
-            addVertex(x2, y, color);
-            addVertex(x2, y2, color);
+            arrayBuffer[curIndex++] = x;
+            arrayBuffer[curIndex++] = y;
+            arrayBuffer[curIndex++] = color;
+
+            arrayBuffer[curIndex++] = x2;
+            arrayBuffer[curIndex++] = y;
+            arrayBuffer[curIndex++] = color;
+
+            arrayBuffer[curIndex++] = x;
+            arrayBuffer[curIndex++] = y2;
+            arrayBuffer[curIndex++] = color;
+
+            arrayBuffer[curIndex++] = x;
+            arrayBuffer[curIndex++] = y2;
+            arrayBuffer[curIndex++] = color;
+            
+            arrayBuffer[curIndex++] = x2;
+            arrayBuffer[curIndex++] = y;
+            arrayBuffer[curIndex++] = color;
+
+            arrayBuffer[curIndex++] = x2;
+            arrayBuffer[curIndex++] = y2;
+            arrayBuffer[curIndex++] = color;
         };
         // draw random rectangles in random colors
         for (const rect of this.rectangles) {
