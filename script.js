@@ -68,10 +68,10 @@ class RectangleDrawer {
         const gl = this.getContext();
         this.program = webglUtils.createProgramFromSources(gl, [vertexShaderSource, fragmentShaderSource]);
         this.rectangles = [];
-        for (let i = 0; i < 10000; ++i){
-            const x = randomInt(2000);
+        for (let i = 0; i < 5000; ++i){
+            const x = randomInt(1000);
             const y = randomInt(1000);
-            this.rectangles.push([x, y, 40, 30, Math.random(), Math.random(), Math.random()]);
+            this.rectangles.push([x, y, 20, 20, Math.random(), Math.random(), Math.random()]);
         }
     }
 
@@ -140,8 +140,8 @@ class RectangleDrawer {
         // pixels to clipspace in the shader
         gl.uniform2f(resolutionUniformLocation, gl.canvas.width, gl.canvas.height);
 
-        const offsetX = 100 * Math.cos(performance.now() / 1000.0);
-        const offsetY = 100 * Math.sin(performance.now() / 1000.0);
+        const offsetX = 30 * Math.cos(performance.now() / 1000.0);
+        const offsetY = 30 * Math.sin(performance.now() / 1000.0);
 
         // draw random rectangles in random colors
         for (const rect of this.rectangles) {
