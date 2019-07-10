@@ -85,7 +85,7 @@ class RectangleDrawer {
         const gl = this.getContext();
         this.program = webglUtils.createProgramFromSources(gl, [vertexShaderSource, fragmentShaderSource]);
         this.rectangles = [];
-        for (let i = 0; i < 1000; ++i){
+        for (let i = 0; i < 10000; ++i){
             const x = randomInt(1000);
             const y = randomInt(1000);
             this.rectangles.push([x, y, 20, 20, Math.random(), Math.random(), Math.random()]);
@@ -221,7 +221,10 @@ class RectangleDrawer {
 }
 
 function step(rd) {
+    const t0 = performance.now();
     rd.draw();
+    const elapsed = performance.now() - t0;
+    console.log(`Took ${elapsed} ms to draw`);
     requestAnimationFrame(() => step(rd));
 }
 
