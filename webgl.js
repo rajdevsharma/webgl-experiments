@@ -133,34 +133,9 @@ class RectangleDrawer {
             colorAttributeLocation, 4, gl.UNSIGNED_BYTE, true, stride, numPositionFields * fieldSize);
     }
 
-    draw() {
-        // Get A WebGL context
+    fillBuffer() {
         const gl = this.getContext();
-        if (!gl) {
-            return;
-        }
-
-        const program = this.program;
-
-        // look up uniform locations
-        var resolutionUniformLocation = gl.getUniformLocation(program, "u_resolution");
-        webglUtils.resizeCanvasToDisplaySize(gl.canvas);
-
-        // Tell WebGL how to convert from clip space to pixels
-        gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-
-        // Clear the canvas
-        gl.clearColor(0, 0, 0, 0);
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-        // Tell it to use our program (pair of shaders)
-        gl.useProgram(program);
-
         gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer);
-        // Pass in the canvas resolution so we can convert from
-        // pixels to clipspace in the shader
-        gl.uniform2f(resolutionUniformLocation, gl.canvas.width, gl.canvas.height);
-
         const offsetX = 30 * Math.cos(performance.now() / 1000.0);
         const offsetY = 30 * Math.sin(performance.now() / 1000.0);
         // Reuse the same array buffer each frame
@@ -204,6 +179,32 @@ class RectangleDrawer {
 
         // Copy the coordinates into the currently bound buffer.
         gl.bufferData(gl.ARRAY_BUFFER, arrayBuffer, gl.STATIC_DRAW);
+    }
+
+    draw() {
+        // Get A WebGL context
+        const gl = this.getContext();
+        const program = this.program;
+
+        // look up uniform locations
+        var resolutionUniformLocation = gl.getUniformLocation(program, "u_resolution");
+        webglUtils.resizeCanvasToDisplaySize(gl.canvas);
+
+        // Tell WebGL how to convert from clip space to pixels
+        gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+
+        // Clear the canvas
+        gl.clearColor(0, 0, 0, 0);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+        // Tell it to use our program (pair of shaders)
+        gl.useProgram(program);
+
+        // Pass in the canvas resolution so we can convert from
+        // pixels to clipspace in the shader
+        gl.uniform2f(resolutionUniformLocation, gl.canvas.width, gl.canvas.height);
+
+        this.fillBuffer();
 
         // Draw the rectangle.
         var primitiveType = gl.TRIANGLES;
