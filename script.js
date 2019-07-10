@@ -82,7 +82,6 @@ class RectangleDrawer {
         const g_8 = Math.floor(g * 255);
         const b_8 = Math.floor(b * 255);
         const a_8 = Math.floor(a * 255);
-
         // Use TypedArray casting to pack the 8-bit values into a single 32-bit value
         return new Float32Array((new Uint8Array([r_8, g_8, b_8, a_8])).buffer)[0];
     }
@@ -106,12 +105,6 @@ class RectangleDrawer {
 
         // Create a buffer
         var buffer = gl.createBuffer();
-
-        // Create a vertex array object (attribute state)
-        var vao = gl.createVertexArray();
-
-        // and make it the one we're currently working with
-        gl.bindVertexArray(vao);
 
         // Turn on the attributes
         gl.enableVertexAttribArray(positionAttributeLocation);
@@ -142,9 +135,6 @@ class RectangleDrawer {
 
         // Tell it to use our program (pair of shaders)
         gl.useProgram(program);
-
-        // Bind the attribute/buffer set we want.
-        gl.bindVertexArray(vao);
 
         // Pass in the canvas resolution so we can convert from
         // pixels to clipspace in the shader
