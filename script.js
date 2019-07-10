@@ -3,6 +3,9 @@
 
 "use strict";
 
+const floatCastBuffer = new ArrayBuffer(4);
+const floatCastView = new DataView(floatCastBuffer);
+
 var vertexShaderSource = `#version 300 es
 
 // an attribute is an input (in) to a vertex shader.
@@ -58,14 +61,19 @@ class RectangleDrawer {
         const gl = this.getContext();
         this.program = webglUtils.createProgramFromSources(gl, [vertexShaderSource, fragmentShaderSource]);
         this.rectangles = [];
+
+        const randomRGB = () => {
+            return Math.floor(Math.random() * 255);
+        };
+
         for (let i = 0; i < 30000; ++i){
             const x = randomInt(1000);
             const y = randomInt(1000);
-            this.rectangles.push([x, y, 5, 5, Math.random(), Math.random(), Math.random()]);
+            this.rectangles.push([x, y, 5, 5, randomRGB(), randomRGB(), randomRGB()]);
         }
         const numTrianglesPerRectangle = 2;
         const numVerticesPerTriangle = 3;
-        const numFloatsPerVertex = 6; // 2 floats for position + 4 floats for color (R, G, B, A)
+        const numFloatsPerVertex = 3; // 2 floats for position + 1 floats for color
         const numFloatsPerTriangle = numFloatsPerVertex * numVerticesPerTriangle;
         const numFloatsPerRectangle = numFloatsPerTriangle * numTrianglesPerRectangle;
         this.arrayBuffer = new Float32Array(numFloatsPerRectangle * this.rectangles.length);
@@ -79,18 +87,16 @@ class RectangleDrawer {
     }
 
     /**
-     * Given color components as floating point from 0.0 to 1.0, return a packed 32-bit
+     * Given color components as 8-bit unsigned (0-255), return a packed 32-bit
      * floating point value.
      */
     getFloatColor(r, g, b, a)
     {
-        // Get uint8 versions of each component
-        const r_8 = Math.floor(r * 255);
-        const g_8 = Math.floor(g * 255);
-        const b_8 = Math.floor(b * 255);
-        const a_8 = Math.floor(a * 255);
-        // Use TypedArray casting to pack the 8-bit values into a single 32-bit value
-        return new Float32Array((new Uint8Array([r_8, g_8, b_8, a_8])).buffer)[0];
+        floatCastView.setUint8(0, a);
+        floatCastView.setUint8(1, r);
+        floatCastView.setUint8(2, g);
+        floatCastView.setUint8(3, b);
+        return floatCastView.getFloat32(0);
     }
 
     setupBuffer() {
@@ -117,14 +123,14 @@ class RectangleDrawer {
 
         // Tell the attribute how to get data out of buffer (ARRAY_BUFFER)
         const numPositionFields = 2;
-        const numColorFields = 4;
+        const numColorFields = 1;
         const fieldSize = 4;  // because gl.FLOAT
         const numTotalFields = numPositionFields + numColorFields;
         const stride = fieldSize * numTotalFields;
         gl.vertexAttribPointer(
             positionAttributeLocation, numPositionFields, gl.FLOAT, false, stride, 0);
         gl.vertexAttribPointer(
-            colorAttributeLocation, numColorFields, gl.FLOAT, true, stride, numPositionFields * fieldSize);
+            colorAttributeLocation, 4, gl.UNSIGNED_BYTE, true, stride, numPositionFields * fieldSize);
     }
 
     draw() {
@@ -161,30 +167,28 @@ class RectangleDrawer {
         const arrayBuffer = this.arrayBuffer;
         let curIndex = 0;
 
-        const addVertex = (x, y, r, g, b) => {
+        const addVertex = (x, y, color) => {
             arrayBuffer[curIndex++] = x;
             arrayBuffer[curIndex++] = y;
-            arrayBuffer[curIndex++] = r;
-            arrayBuffer[curIndex++] = g;
-            arrayBuffer[curIndex++] = b;
-            arrayBuffer[curIndex++] = 1.0;
+            arrayBuffer[curIndex++] = color;
         };
 
-        const addRectangle = (x, y, w, h, r, g, b) => {
+        const addRectangle = (x, y, w, h, color) => {
             const x2 = x + w;
             const y2 = y + h;
-            addVertex(x, y, r, g, b);
-            addVertex(x2, y, r, g, b);
-            addVertex(x, y2, r, g, b);
-            addVertex(x, y2, r, g, b);
-            addVertex(x2, y, r, g, b);
-            addVertex(x2, y2, r, g, b);
+            addVertex(x, y, color);
+            addVertex(x2, y, color);
+            addVertex(x, y2, color);
+            addVertex(x, y2, color);
+            addVertex(x2, y, color);
+            addVertex(x2, y2, color);
         };
         // draw random rectangles in random colors
         for (const rect of this.rectangles) {
             // Put a rectangle in the position buffer
             const [x, y, w, h, r, g, b] = rect;
-            addRectangle(x + offsetX, y + offsetY, w, h, r, g, b);
+            const color = this.getFloatColor(r, g, b, 255);
+            addRectangle(x + offsetX, y + offsetY, w, h, color);
         }
 
         // Copy the coordinates into the currently bound buffer.
