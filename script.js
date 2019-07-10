@@ -53,39 +53,12 @@ function randomInt(range) {
 return Math.floor(Math.random() * range);
 }
 
-// Fill the buffer with the values that define a rectangle.
-function setRectangle(gl, x, y, width, height) {
-    var x1 = x;
-    var x2 = x + width;
-    var y1 = y;
-    var y2 = y + height;
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-        x1, y1,
-        x2, y1,
-        x1, y2,
-        x1, y2,
-        x2, y1,
-        x2, y2,
-    ]), gl.STATIC_DRAW);
-}
-
-function appendRectangle(coordinates, x, y, width, height) {
-    var x1 = x;
-    var x2 = x + width;
-    var y1 = y;
-    var y2 = y + height;
-
-    for (let c of [x1, y1, x2, y1, x1, y2, x1, y2, x2, y1, x2, y2]) {
-        coordinates.push(c);
-    }
-}
-
 class RectangleDrawer {
     constructor() {
         const gl = this.getContext();
         this.program = webglUtils.createProgramFromSources(gl, [vertexShaderSource, fragmentShaderSource]);
         this.rectangles = [];
-        for (let i = 0; i < 10000; ++i){
+        for (let i = 0; i < 30000; ++i){
             const x = randomInt(1000);
             const y = randomInt(1000);
             this.rectangles.push([x, y, 20, 20, Math.random(), Math.random(), Math.random()]);
@@ -148,11 +121,15 @@ class RectangleDrawer {
         gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
 
         // Tell the attribute how to get data out of buffer (ARRAY_BUFFER)
-        const stride = 12;
+        const numPositionFields = 2;
+        const numColorFields = 4;
+        const fieldSize = 4;  // because gl.FLOAT
+        const numTotalFields = numPositionFields + numColorFields;
+        const stride = fieldSize * numTotalFields;
         gl.vertexAttribPointer(
-            positionAttributeLocation, 2, gl.FLOAT, false, stride, 0);
+            positionAttributeLocation, numPositionFields, gl.FLOAT, false, stride, 0);
         gl.vertexAttribPointer(
-            colorAttributeLocation, 4, gl.UNSIGNED_BYTE, true, stride, 8);
+            colorAttributeLocation, numColorFields, gl.FLOAT, true, stride, numPositionFields * fieldSize);
 
         webglUtils.resizeCanvasToDisplaySize(gl.canvas);
 
@@ -178,7 +155,7 @@ class RectangleDrawer {
 
         const numTrianglesPerRectangle = 2;
         const numVerticesPerTriangle = 3;
-        const numFloatsPerVertex = 3; // 2 floats for position + 1 float (4 ubytes) for color
+        const numFloatsPerVertex = 6; // 2 floats for position + 4 floats for color (R, G, B, A)
         const numFloatsPerTriangle = numFloatsPerVertex * numVerticesPerTriangle;
         const numFloatsPerRectangle = numFloatsPerTriangle * numTrianglesPerRectangle;
         const arrayBuffer = new Float32Array(numFloatsPerRectangle * this.rectangles.length);
@@ -187,13 +164,16 @@ class RectangleDrawer {
         const addVertex = (x, y, color) => {
             arrayBuffer[curIndex++] = x;
             arrayBuffer[curIndex++] = y;
-            arrayBuffer[curIndex++] = color;
+            arrayBuffer[curIndex++] = color[0];
+            arrayBuffer[curIndex++] = color[1];
+            arrayBuffer[curIndex++] = color[2];
+            arrayBuffer[curIndex++] = color[3];
         };
 
         const addRectangle = (x, y, w, h, r, g, b) => {
             const x2 = x + w;
             const y2 = y + h;
-            const color = this.getFloatColor(r, g, b, 1.0);
+            const color = [r, g, b, 1.0];
             addVertex(x, y, color);
             addVertex(x2, y, color);
             addVertex(x, y2, color);
