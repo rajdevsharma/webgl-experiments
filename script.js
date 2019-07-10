@@ -66,7 +66,7 @@ class RectangleDrawer {
             return Math.floor(Math.random() * 255);
         };
 
-        for (let i = 0; i < 30000; ++i){
+        for (let i = 0; i < 100000; ++i){
             const x = randomInt(1000);
             const y = randomInt(1000);
             this.rectangles.push([x, y, 5, 5, randomRGB(), randomRGB(), randomRGB()]);
